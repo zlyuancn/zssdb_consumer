@@ -13,6 +13,7 @@ import (
     "time"
 
     "github.com/seefan/gossdb"
+    "github.com/zlyuancn/zerrors"
     "github.com/zlyuancn/zlog2"
 )
 
@@ -76,7 +77,7 @@ func (m *SsdbConsumer) Start() {
 func (m *SsdbConsumer) _pop(c *gossdb.Client, queue *Queue) ([]*Entry, error) {
     vs, err := c.QpopArray(queue.Name, m.batch_size, queue.PopReverse)
     if err != nil {
-        return nil, fmt.Errorf("pop失败: %s", err)
+        return nil, zerrors.WrapSimple(err, "pop失败")
     }
     if len(vs) == 0 {
         return nil, nil
@@ -96,7 +97,7 @@ func (m *SsdbConsumer) _pop(c *gossdb.Client, queue *Queue) ([]*Entry, error) {
 func (m *SsdbConsumer) pop() ([]*Entry, error) {
     client, err := m.c.NewClient()
     if err != nil {
-        return nil, fmt.Errorf("获取ssdb客户端失败: %s", err)
+        return nil, zerrors.WrapSimple(err, "获取ssdb客户端失败")
     }
     defer client.Close()
 
@@ -168,7 +169,7 @@ func (m *SsdbConsumer) start() {
 func (m *SsdbConsumer) _return() {
     client, err := m.c.NewClient()
     if err != nil {
-        m.log.Error("获取ssdb客户端失败: ", err)
+        m.log.Error(zerrors.ToDetailString(zerrors.WrapSimple(err, "获取ssdb客户端失败")))
         return
     }
     defer client.Close()
@@ -234,7 +235,7 @@ func (m *SsdbConsumer) consume() {
 
 func (m *SsdbConsumer) process(data *Entry) {
     if err := m.consumer.Process(data); err != nil {
-        m.log.Warn(fmt.Sprintf("[%s]处理失败: %s", data.Queue, err))
+        m.log.Warn(zerrors.ToDetailString(zerrors.WrapSimplef(err, "[%s]处理失败", data.Queue)))
     }
 
     if data.ret == nil {
@@ -243,7 +244,7 @@ func (m *SsdbConsumer) process(data *Entry) {
 
     client, err := m.c.NewClient()
     if err != nil {
-        m.log.Error(fmt.Sprintf("获取ssdb客户端失败: %s", err))
+        m.log.Error(zerrors.ToDetailString(zerrors.WrapSimple(err, "获取ssdb客户端失败")))
         return
     }
     defer client.Close()
@@ -255,7 +256,7 @@ func (m *SsdbConsumer) process(data *Entry) {
     }
 
     if err != nil {
-        m.log.Warn(fmt.Sprintf("[%s]归还数据失败: %s", data.Queue, err))
+        m.log.Warn(zerrors.ToDetailString(zerrors.WrapSimplef(err, "[%s]归还数据失败", data.Queue)))
     } else {
         m.log.Warn(fmt.Sprintf("[%s]归还数据成功", data.Queue))
     }
