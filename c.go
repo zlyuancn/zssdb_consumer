@@ -33,6 +33,9 @@ type SsdbConsumer struct {
 }
 
 func New(conf SsdbConsumerConfig) *SsdbConsumer {
+    if conf.SsdbConnectors == nil {
+        panic("ssdb连接器为空")
+    }
     if conf.CacheCount <= 0 {
         conf.CacheCount = DefaultCacheCount
     }

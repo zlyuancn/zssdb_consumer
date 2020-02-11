@@ -12,7 +12,19 @@ import (
     "time"
 
     "github.com/seefan/gossdb"
+    "github.com/zlyuancn/zlog2"
 )
+
+var DefaultSsdbConsumerConfig = SsdbConsumerConfig{
+    SsdbConnectors: nil,
+    Queue:          nil,
+    CacheCount:     DefaultCacheCount,
+    PopBatchSize:   DefaultPopBatchSize,
+    Consumer:       nil,
+    EmptyWait:      DefaultEmptyWait,
+    ErrWait:        DefaultErrWait,
+    Log:            zlog2.DefaultLogger,
+}
 
 type SsdbConsumerConfig struct {
     SsdbConnectors *gossdb.Connectors // ssdb客户端连接器
